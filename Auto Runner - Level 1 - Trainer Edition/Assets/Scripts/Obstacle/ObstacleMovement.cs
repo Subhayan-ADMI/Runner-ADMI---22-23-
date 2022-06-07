@@ -41,7 +41,7 @@ public class ObstacleMovement : MonoBehaviour
     }
     private void MoveByWaypoints()
     {
-        //move to current waypoint
+        //move to next waypoint
         transform.position = Vector2.MoveTowards(transform.position,
             waypoints[nextWaypoint].position, speed);
 
@@ -49,7 +49,6 @@ public class ObstacleMovement : MonoBehaviour
         if (transform.position == waypoints[nextWaypoint].position)
 
         {
-            Debug.Log("Move to next!");
             nextWaypoint++;
 
             //if at the end of the array, loop over

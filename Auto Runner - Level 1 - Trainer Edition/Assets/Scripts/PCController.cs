@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -147,6 +148,16 @@ public class PCController : MonoBehaviour
         if (collision.gameObject.CompareTag("Pickup")) //Check if the gameobject we collided with, has the tag Pickup
         {
             Destroy(collision.gameObject); //If true, destroy that gameobject with tag pickup
+            UIManager.Instance.UpdateScore(); // we call the UIManager to update the score
+        }
+    }
+
+    private void OnCollisionEnter2D(Collision2D col) // Gets called when the PC collides with another Object ( not a trigger)
+    {
+        if (col.collider.CompareTag("Obstacle"))
+        {
+            Debug.Log("Collided with an obstacle!!! GAME OVER");
+            UIManager.Instance.GameOver();
         }
     }
 }

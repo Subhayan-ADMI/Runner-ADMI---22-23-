@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Pickup
   - waypoint
+  - Obstacle
   layers:
   - Default
   - TransparentFX

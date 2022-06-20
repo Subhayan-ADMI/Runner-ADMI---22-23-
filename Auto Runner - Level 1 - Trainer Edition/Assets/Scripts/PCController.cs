@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class PCController : MonoBehaviour
 {
@@ -34,6 +35,8 @@ public class PCController : MonoBehaviour
     public Transform groundCheckFrontTransform; //Stores the GroundCheckFront Transform in inspector
     public Transform groundCheckBackTransform; //Stores the GroundCheckBack Transform in inspector
 
+    bool hitUI = false;
+
     void Awake() //Called before Start Function - use this for initializing component variables
     {
         playerRB = GetComponent<Rigidbody2D>(); //Access the Rigidbody2D component and store all properties in playerRB when game starts
@@ -53,6 +56,17 @@ public class PCController : MonoBehaviour
 
         CheckGroundCollision(); //Call the function which checks ground every frame
 
+        if (EventSystem.current.IsPointerOverGameObject())
+        {
+            Debug.Log("hello");
+            hitUI = true;
+        }
+        else
+        {
+            hitUI = false;
+        }
+
+
         switch (currentState) //check the value of currentState every frame
         {
             case PlayerStates.IDLE: //If value is PlayerState.Idle, execute following block of code till break
@@ -61,7 +75,7 @@ public class PCController : MonoBehaviour
             case PlayerStates.RUN: //If value is PlayerState.Run, execute following block of code till break
                 PCMovement(); //Call the PC Movement function so pc gameobject can move
 
-                if (Input.GetMouseButtonDown(0) && isGrounded) //Check If left mouse button is pressed or one finger touched screen and isGrounded is true
+                if (Input.GetMouseButtonDown(0) && !hitUI && isGrounded) //Check If left mouse button is pressed or one finger touched screen and isGrounded is true
                 {
                     PCJump(); //if both statements are true, Call the function to make the PC Jump
                 }
@@ -148,7 +162,7 @@ public class PCController : MonoBehaviour
         if (collision.gameObject.CompareTag("Pickup")) //Check if the gameobject we collided with, has the tag Pickup
         {
             Destroy(collision.gameObject); //If true, destroy that gameobject with tag pickup
-            UIManager.Instance.UpdateScore(); // we call the UIManager to update the score
+            //UIManager.Instance.UpdateScore(); // we call the UIManager to update the score
         }
     }
 
@@ -157,7 +171,7 @@ public class PCController : MonoBehaviour
         if (col.collider.CompareTag("Obstacle"))
         {
             Debug.Log("Collided with an obstacle!!! GAME OVER");
-            UIManager.Instance.GameOver();
+            //UIManager.Instance.GameOver();
         }
     }
 }

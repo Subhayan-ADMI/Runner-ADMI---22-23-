@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class PCControllerGlide : MonoBehaviour
 {
@@ -34,16 +35,20 @@ public class PCControllerGlide : MonoBehaviour
     public Transform groundCheckFrontTransform; //Stores the GroundCheckFront Transform in inspector
     public Transform groundCheckBackTransform; //Stores the GroundCheckBack Transform in inspector
 
+    [Header("Game State")] //Seperate components in inspector - to make the project user friendly, not needed
+    public bool isPaused = false;
+    public bool touchOnUI = false;
+
     void Awake() //Called before Start Function - use this for initializing component variables
     {
         playerRB = GetComponent<Rigidbody2D>(); //Access the Rigidbody2D component and store all properties in playerRB when game starts
-        currentState = PlayerStates.RUN; //Set currentstate to Run State at start of the game
+        currentState = PlayerStates.IDLE; //Set currentstate to Run State at start of the game
     }
 
     // Start is called before the first frame update
     void Start()
     {
-        InitialPush(); //Call the initial push function here
+
     }
 
     // Update is called once per frame
@@ -53,15 +58,43 @@ public class PCControllerGlide : MonoBehaviour
 
         CheckGroundCollision(); //Call the function which checks ground every frame
 
+        if (GameManager.instance.currentGameState == GameManager.GameStates.PAUSE)
+        {
+            isPaused = true;
+        }
+        else if (GameManager.instance.currentGameState != GameManager.GameStates.PAUSE)
+        {
+            isPaused = false;
+        }
+
+        if (EventSystem.current.IsPointerOverGameObject())
+        {
+            touchOnUI = true;
+        }
+        else
+        {
+            touchOnUI = false;
+        }
+
         switch (currentState) //check the value of currentState every frame
         {
             case PlayerStates.IDLE: //If value is PlayerState.Idle, execute following block of code till break
+
+                if (GameManager.instance.currentGameState == GameManager.GameStates.GAMEPLAY)
+                {
+                    InitialPush();
+                    if (currentState != PlayerStates.RUN)
+                    {
+                        currentState = PlayerStates.RUN;
+                    }
+                }
+
                 break;
 
             case PlayerStates.RUN: //If value is PlayerState.Run, execute following block of code till break
                 PCMovement(); //Call the PC Movement function so pc gameobject can move
 
-                if (Input.GetMouseButtonDown(0) && isGrounded) //Check If left mouse button is pressed or one finger touched screen and isGrounded is true
+                if (Input.GetMouseButtonDown(0) && isGrounded && !isPaused && !touchOnUI) //Check If left mouse button is pressed or one finger touched screen and isGrounded is true
                 {
                     PCJump(); //if both statements are true, Call the function to make the PC Jump
                 }
@@ -86,7 +119,7 @@ public class PCControllerGlide : MonoBehaviour
                     }
                 }
 
-                if (Input.GetMouseButtonDown(0)) //Check If left mouse button is pressed or one finger touched screen
+                if (Input.GetMouseButtonDown(0) && !isPaused && !touchOnUI) //Check If left mouse button is pressed or one finger touched screen
                 {
                     if (currentState != PlayerStates.ABILITY) //Check if current Player State is NOT In Ability State
                     {

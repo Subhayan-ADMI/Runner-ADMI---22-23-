@@ -21,7 +21,7 @@ public class CreepyHandObstacle : MonoBehaviour
     void Start()
     {
         transform.localScale = new Vector3(1f, 0f, 1f);
-        chCurrentState = CreepyHandStates.RISEUP;
+        chCurrentState = CreepyHandStates.IDLE;
     }
 
     // Update is called once per frame
@@ -53,7 +53,7 @@ public class CreepyHandObstacle : MonoBehaviour
                 }
                 else if ((transform.localScale.y <= minHandHeight) && chCurrentState != CreepyHandStates.RISEUP)
                 {
-                    StartCoroutine(HandWait(CreepyHandStates.RISEUP));
+                    gameObject.GetComponentInParent<Set>().setDone = true;
                 }
 
                 break;

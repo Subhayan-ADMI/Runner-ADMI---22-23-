@@ -41,17 +41,20 @@ public class PCControllerTeleport : MonoBehaviour
     public Transform groundCheckFrontTransform; //Stores the GroundCheckFront Transform in inspector
     public Transform groundCheckBackTransform; //Stores the GroundCheckBack Transform in inspector
 
+    [Header("Game State")] //Seperate components in inspector - to make the project user friendly, not needed
+    public bool isPaused;
+
     void Awake() //Called before Start Function - use this for initializing component variables
     {
         playerRB = GetComponent<Rigidbody2D>(); //Access the Rigidbody2D component and store all properties in playerRB when game starts
         playerCollider = GetComponent<CircleCollider2D>();
-        currentState = PlayerStates.RUN; //Set currentstate to Run State at start of the game
+        currentState = PlayerStates.IDLE; //Set currentstate to Run State at start of the game
     }
 
     // Start is called before the first frame update
     void Start()
     {
-        InitialPush(); //Call the initial push function here
+       
     }
 
     // Update is called once per frame
@@ -62,20 +65,39 @@ public class PCControllerTeleport : MonoBehaviour
         CheckGroundCollision(); //Call the function which checks ground every frame
         CheckFront();
 
+        if (GameManager.instance.currentGameState == GameManager.GameStates.PAUSE)
+        {
+            isPaused = true;
+        }
+        else if (GameManager.instance.currentGameState != GameManager.GameStates.PAUSE)
+        {
+            isPaused = false;
+        }
+
         switch (currentState) //check the value of currentState every frame
         {
             case PlayerStates.IDLE: //If value is PlayerState.Idle, execute following block of code till break
+
+                if (GameManager.instance.currentGameState == GameManager.GameStates.GAMEPLAY)
+                {
+                    InitialPush();
+                    if (currentState != PlayerStates.RUN)
+                    {
+                        currentState = PlayerStates.RUN;
+                    }
+                }
+
                 break;
 
             case PlayerStates.RUN: //If value is PlayerState.Run, execute following block of code till break
                 PCMovement(); //Call the PC Movement function so pc gameobject can move
 
-                if (Input.GetMouseButtonDown(0) && isGrounded)
+                if (Input.GetMouseButtonDown(0) && isGrounded && !isPaused)
                 {
                     startSwipePosition = Input.mousePosition;
                 }
 
-                if (Input.GetMouseButtonUp(0) && isGrounded)
+                if (Input.GetMouseButtonUp(0) && isGrounded && !isPaused)
                 {
                     CalculateSwipe(Input.mousePosition);
                 }

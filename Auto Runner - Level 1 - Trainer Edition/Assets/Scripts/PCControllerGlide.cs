@@ -25,9 +25,11 @@ public class PCControllerGlide : MonoBehaviour
 
     [Header("Player Components")] //Seperate components in inspector - to make the project user friendly, not needed
     Rigidbody2D playerRB; //store Rigidbody2D Component of pc gameobject
+    Animator playerAnim;
 
     [Header("State Machine Variables")] //Seperate components in inspector - to make the project user friendly, not needed
     public PlayerStates currentState; //make a variable of data type PlayerState
+    
 
     [Header("Player Collision Variables")] //Seperate components in inspector - to make the project user friendly, not needed
     public LayerMask whatIsGround; //make the public variable to assign which unity layer is to be considered as ground
@@ -39,9 +41,15 @@ public class PCControllerGlide : MonoBehaviour
     public bool isPaused = false;
     public bool touchOnUI = false;
 
+    [Header("Animation variables")]
+    public bool isRunning = false;
+    public bool isJumping = false;
+
+
     void Awake() //Called before Start Function - use this for initializing component variables
     {
         playerRB = GetComponent<Rigidbody2D>(); //Access the Rigidbody2D component and store all properties in playerRB when game starts
+        playerAnim = GetComponent<Animator>();
         currentState = PlayerStates.IDLE; //Set currentstate to Run State at start of the game
     }
 
@@ -57,6 +65,9 @@ public class PCControllerGlide : MonoBehaviour
         ballVelocity = playerRB.velocity.x; //Update ballVelocity value with pc gameobject's physics X axis velocity every frame
 
         CheckGroundCollision(); //Call the function which checks ground every frame
+
+        playerAnim.SetBool("isRunning", isRunning);
+        playerAnim.SetBool("isJumping", isJumping);
 
         if (GameManager.instance.currentGameState == GameManager.GameStates.PAUSE)
         {
@@ -94,6 +105,9 @@ public class PCControllerGlide : MonoBehaviour
             case PlayerStates.RUN: //If value is PlayerState.Run, execute following block of code till break
                 PCMovement(); //Call the PC Movement function so pc gameobject can move
 
+                isRunning = true;
+                isJumping = false;
+
                 if (Input.GetMouseButtonDown(0) && isGrounded && !isPaused && !touchOnUI) //Check If left mouse button is pressed or one finger touched screen and isGrounded is true
                 {
                     PCJump(); //if both statements are true, Call the function to make the PC Jump
@@ -110,7 +124,9 @@ public class PCControllerGlide : MonoBehaviour
                 break;
 
             case PlayerStates.INAIR: //If value is PlayerState.InAir, execute following block of code till break
-
+                
+                isRunning = false;
+          
                 if (isGrounded) //Check if player is grounded
                 {
                     if (currentState != PlayerStates.RUN) //Check if current Player State is NOT In Run State
@@ -175,6 +191,7 @@ public class PCControllerGlide : MonoBehaviour
 
     void PCJump()
     {
+        isJumping = true;
         playerRB.AddForce(new Vector2(0f, jumpForce), ForceMode2D.Impulse); //Add a force on the vertical Y axis ONLY, of value jumpForce to PC rigidbody once
     }
 
@@ -195,6 +212,8 @@ public class PCControllerGlide : MonoBehaviour
         {
             isGrounded = false; //If false, set isGrounded to false
         }
+
+        playerAnim.SetBool("isGrounded", isGrounded);
     }
 
     private void OnTriggerEnter2D(Collider2D collision) //Gets called whenever the PC collides with a Trigger Collider 

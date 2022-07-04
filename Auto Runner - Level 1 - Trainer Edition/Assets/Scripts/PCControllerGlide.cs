@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -49,8 +50,10 @@ public class PCControllerGlide : MonoBehaviour
     [Header("VFX variables")]
     public GameObject DustVFX;
     public GameObject DeathVFX;
+    public GameObject PickupVFX;
     VisualEffect DustVFXGraph;
     VisualEffect DeathVFXGraph;
+    VisualEffect PickupVFXGraph;
 
 
     void Awake() //Called before Start Function - use this for initializing component variables
@@ -60,6 +63,7 @@ public class PCControllerGlide : MonoBehaviour
 
         DustVFXGraph = DustVFX.GetComponent<VisualEffect>();
         DeathVFXGraph = DeathVFX.GetComponent<VisualEffect>();
+        PickupVFXGraph = PickupVFX.GetComponent<VisualEffect>();
 
         currentState = PlayerStates.IDLE; //Set currentstate to Run State at start of the game
     }
@@ -183,7 +187,8 @@ public class PCControllerGlide : MonoBehaviour
 
             case PlayerStates.DEAD: //If value is PlayerState.Dead, execute following block of code till break
 
-                DustVFX.SetActive(false);
+                DustVFX.SetActive(false); // Deactivate the DustVFX
+                DeathVFX.SetActive(true); // Activate de Death VFX
                 SetVFXValue(DustVFXGraph, 0f);
                 SetVFXValue(DeathVFXGraph, 5f);
 
@@ -246,11 +251,36 @@ public class PCControllerGlide : MonoBehaviour
         if (collision.gameObject.CompareTag("Pickup")) //Check if the gameobject we collided with, has the tag Pickup
         {
             Destroy(collision.gameObject); //If true, destroy that gameobject with tag pickup
+            
+            
+            // show Pickup VFX
+            StartCoroutine(ShowPickupVFX(collision.transform.position));
         }
+    }
+
+    IEnumerator ShowPickupVFX(Vector3 contactPoint)
+    {
+        PickupVFX.SetActive(true);
+        PickupVFX.transform.position = contactPoint; // the visual effect will be where the contact happened
+
+        float pickupLifetime = PickupVFXGraph.GetFloat("Lifetime"); // We get the lenght of the visual effect ( its lifetime)
+        PickupVFXGraph.Play();
+        yield return new WaitForSeconds(pickupLifetime); // We wait until the VFX is finished playing
+        PickupVFX.SetActive(false); // Then we deactivate the VFX 
     }
 
     public void SetVFXValue(VisualEffect vfx, float spawnValue)
     {
         vfx.SetFloat("_spawnRate", spawnValue);
+    }
+
+    private void OnCollisionEnter2D(Collision2D col)
+    {
+        if (col.collider.CompareTag("Obstacle"))
+        {
+            currentState = PlayerStates.DEAD; // When the player hits an obstacle, change state to DEAD
+            Debug.Log("Collided with an obstacle!!! GAME OVER");
+            //UIManager.Instance.GameOver();
+        }
     }
 }

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.VFX;
 
 public class PCControllerGlide : MonoBehaviour
 {
@@ -45,11 +46,21 @@ public class PCControllerGlide : MonoBehaviour
     public bool isRunning = false;
     public bool isJumping = false;
 
+    [Header("VFX variables")]
+    public GameObject DustVFX;
+    public GameObject DeathVFX;
+    VisualEffect DustVFXGraph;
+    VisualEffect DeathVFXGraph;
+
 
     void Awake() //Called before Start Function - use this for initializing component variables
     {
         playerRB = GetComponent<Rigidbody2D>(); //Access the Rigidbody2D component and store all properties in playerRB when game starts
         playerAnim = GetComponent<Animator>();
+
+        DustVFXGraph = DustVFX.GetComponent<VisualEffect>();
+        DeathVFXGraph = DeathVFX.GetComponent<VisualEffect>();
+
         currentState = PlayerStates.IDLE; //Set currentstate to Run State at start of the game
     }
 
@@ -90,6 +101,9 @@ public class PCControllerGlide : MonoBehaviour
         switch (currentState) //check the value of currentState every frame
         {
             case PlayerStates.IDLE: //If value is PlayerState.Idle, execute following block of code till break
+                
+                DustVFX.SetActive(false);
+                SetVFXValue(DustVFXGraph, 0f);
 
                 if (GameManager.instance.currentGameState == GameManager.GameStates.GAMEPLAY)
                 {
@@ -107,6 +121,9 @@ public class PCControllerGlide : MonoBehaviour
 
                 isRunning = true;
                 isJumping = false;
+
+                DustVFX.SetActive(true);
+                SetVFXValue(DustVFXGraph, 5f);
 
                 if (Input.GetMouseButtonDown(0) && isGrounded && !isPaused && !touchOnUI) //Check If left mouse button is pressed or one finger touched screen and isGrounded is true
                 {
@@ -126,7 +143,10 @@ public class PCControllerGlide : MonoBehaviour
             case PlayerStates.INAIR: //If value is PlayerState.InAir, execute following block of code till break
                 
                 isRunning = false;
-          
+
+                DustVFX.SetActive(false);
+                SetVFXValue(DustVFXGraph, 0f);
+
                 if (isGrounded) //Check if player is grounded
                 {
                     if (currentState != PlayerStates.RUN) //Check if current Player State is NOT In Run State
@@ -162,6 +182,11 @@ public class PCControllerGlide : MonoBehaviour
                 break;
 
             case PlayerStates.DEAD: //If value is PlayerState.Dead, execute following block of code till break
+
+                DustVFX.SetActive(false);
+                SetVFXValue(DustVFXGraph, 0f);
+                SetVFXValue(DeathVFXGraph, 5f);
+
                 break;
             
         }
@@ -222,5 +247,10 @@ public class PCControllerGlide : MonoBehaviour
         {
             Destroy(collision.gameObject); //If true, destroy that gameobject with tag pickup
         }
+    }
+
+    public void SetVFXValue(VisualEffect vfx, float spawnValue)
+    {
+        vfx.SetFloat("_spawnRate", spawnValue);
     }
 }

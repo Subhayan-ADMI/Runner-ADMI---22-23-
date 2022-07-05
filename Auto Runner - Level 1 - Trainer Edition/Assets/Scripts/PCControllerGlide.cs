@@ -56,6 +56,8 @@ public class PCControllerGlide : MonoBehaviour
     VisualEffect PickupVFXGraph;
 
 
+    #region Unity Call backs
+
     void Awake() //Called before Start Function - use this for initializing component variables
     {
         playerRB = GetComponent<Rigidbody2D>(); //Access the Rigidbody2D component and store all properties in playerRB when game starts
@@ -105,7 +107,7 @@ public class PCControllerGlide : MonoBehaviour
         switch (currentState) //check the value of currentState every frame
         {
             case PlayerStates.IDLE: //If value is PlayerState.Idle, execute following block of code till break
-                
+
                 DustVFX.SetActive(false);
                 SetVFXValue(DustVFXGraph, 0f);
 
@@ -145,7 +147,7 @@ public class PCControllerGlide : MonoBehaviour
                 break;
 
             case PlayerStates.INAIR: //If value is PlayerState.InAir, execute following block of code till break
-                
+
                 isRunning = false;
 
                 DustVFX.SetActive(false);
@@ -170,7 +172,7 @@ public class PCControllerGlide : MonoBehaviour
                 break;
 
             case PlayerStates.ABILITY: //If value is PlayerState.Ability, execute following block of code till break
-                
+
                 playerRB.gravityScale = playerGravity;
 
                 if (isGrounded) //Check if player is grounded
@@ -193,19 +195,71 @@ public class PCControllerGlide : MonoBehaviour
                 SetVFXValue(DeathVFXGraph, 5f);
 
                 break;
-            
+
         }
     }
 
+    private void OnTriggerEnter2D(Collider2D collision) //Gets called whenever the PC collides with a Trigger Collider 
+    {
+        if (collision.gameObject.CompareTag("Pickup")) //Check if the gameobject we collided with, has the tag Pickup
+        {
+            Destroy(collision.gameObject); //If true, destroy that gameobject with tag pickup
+
+
+            // show Pickup VFX
+            StartCoroutine(ShowPickupVFX(collision.transform.position));
+        }
+    }
+    private void OnCollisionEnter2D(Collision2D col)
+    {
+
+
+        if (col.collider.CompareTag("Obstacle"))
+        {
+            currentState = PlayerStates.DEAD; // When the player hits an obstacle, change state to DEAD
+            Debug.Log("Collided with an obstacle!!! GAME OVER");
+            //UIManager.Instance.GameOver();
+        }
+        else if (col.collider.CompareTag("Bat"))
+        {
+            currentState = PlayerStates.DEAD; // When the player hits an obstacle, change state to DEAD
+            Debug.Log("Collided with an obstacle!!! GAME OVER");
+        }
+    }
+    void CheckGroundCollision()//This Function will detect if the pc is touching a ground collider
+    {
+        //Convert Vector3 groundCheckFrontTransform.position to a Vector2 variable, groundCheckFront
+        Vector2 groundCheckFront = new Vector2(groundCheckFrontTransform.position.x, groundCheckFrontTransform.position.y);
+
+        //Convert Vector3 groundCheckBackTransform.position to a Vector2 variable, groundCheckBack
+        Vector2 groundCheckBack = new Vector2(groundCheckBackTransform.position.x, groundCheckBackTransform.position.y);
+
+        //Check if either the front point OR the back point is touching any collider on ground layer
+        if (Physics2D.OverlapPoint(groundCheckFront, whatIsGround) || Physics2D.OverlapPoint(groundCheckBack, whatIsGround))
+        {
+            isGrounded = true; //If true, set isGrounded to true;
+        }
+        else
+        {
+            isGrounded = false; //If false, set isGrounded to false
+        }
+
+        playerAnim.SetBool("isGrounded", isGrounded);
+    } 
+    #endregion
+
+    #region Set up Code
     void InitialPush() //The function which gives the pc gameobject an initial velocity
     {
         playerRB.AddForce(new Vector2(speed, 0f), ForceMode2D.Impulse); //Add a force on the horizontal X axis ONLY, of value speed to PC rigidbody once
-    }
+    } 
+    #endregion
 
+    #region Movement Code
     void PCMovement() //The function which makes the player accelerate and move ahead
     {
         ballVelocity += acceleration * Time.deltaTime; // plug in acceleration formula to get new final velocity of the ball after acceleration
-       
+
 
         if (ballVelocity >= maxVelocity) //Checking whether pc has reached maximum velocity after acceleration
         {
@@ -225,39 +279,9 @@ public class PCControllerGlide : MonoBehaviour
         playerRB.AddForce(new Vector2(0f, jumpForce), ForceMode2D.Impulse); //Add a force on the vertical Y axis ONLY, of value jumpForce to PC rigidbody once
     }
 
-    void CheckGroundCollision()//This Function will detect if the pc is touching a ground collider
-    {
-        //Convert Vector3 groundCheckFrontTransform.position to a Vector2 variable, groundCheckFront
-        Vector2 groundCheckFront = new Vector2(groundCheckFrontTransform.position.x, groundCheckFrontTransform.position.y);
+    #endregion
 
-        //Convert Vector3 groundCheckBackTransform.position to a Vector2 variable, groundCheckBack
-        Vector2 groundCheckBack = new Vector2(groundCheckBackTransform.position.x, groundCheckBackTransform.position.y);
-
-        //Check if either the front point OR the back point is touching any collider on ground layer
-        if (Physics2D.OverlapPoint(groundCheckFront, whatIsGround) || Physics2D.OverlapPoint(groundCheckBack, whatIsGround))
-        {
-            isGrounded = true; //If true, set isGrounded to true;
-        }
-        else 
-        {
-            isGrounded = false; //If false, set isGrounded to false
-        }
-
-        playerAnim.SetBool("isGrounded", isGrounded);
-    }
-
-    private void OnTriggerEnter2D(Collider2D collision) //Gets called whenever the PC collides with a Trigger Collider 
-    {
-        if (collision.gameObject.CompareTag("Pickup")) //Check if the gameobject we collided with, has the tag Pickup
-        {
-            Destroy(collision.gameObject); //If true, destroy that gameobject with tag pickup
-            
-            
-            // show Pickup VFX
-            StartCoroutine(ShowPickupVFX(collision.transform.position));
-        }
-    }
-
+    #region VFX related Code
     IEnumerator ShowPickupVFX(Vector3 contactPoint)
     {
         PickupVFX.SetActive(true);
@@ -272,15 +296,7 @@ public class PCControllerGlide : MonoBehaviour
     public void SetVFXValue(VisualEffect vfx, float spawnValue)
     {
         vfx.SetFloat("_spawnRate", spawnValue);
-    }
+    } 
+    #endregion
 
-    private void OnCollisionEnter2D(Collision2D col)
-    {
-        if (col.collider.CompareTag("Obstacle"))
-        {
-            currentState = PlayerStates.DEAD; // When the player hits an obstacle, change state to DEAD
-            Debug.Log("Collided with an obstacle!!! GAME OVER");
-            //UIManager.Instance.GameOver();
-        }
-    }
 }

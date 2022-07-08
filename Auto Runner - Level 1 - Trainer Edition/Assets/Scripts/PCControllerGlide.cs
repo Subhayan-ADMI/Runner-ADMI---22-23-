@@ -28,6 +28,7 @@ public class PCControllerGlide : MonoBehaviour
     [Header("Player Components")] //Seperate components in inspector - to make the project user friendly, not needed
     Rigidbody2D playerRB; //store Rigidbody2D Component of pc gameobject
     Animator playerAnim;
+    AudioSource playerAudio;
 
     [Header("State Machine Variables")] //Seperate components in inspector - to make the project user friendly, not needed
     public PlayerStates currentState; //make a variable of data type PlayerState
@@ -62,6 +63,7 @@ public class PCControllerGlide : MonoBehaviour
     {
         playerRB = GetComponent<Rigidbody2D>(); //Access the Rigidbody2D component and store all properties in playerRB when game starts
         playerAnim = GetComponent<Animator>();
+        playerAudio = GetComponent<AudioSource>();
 
         DustVFXGraph = DustVFX.GetComponent<VisualEffect>();
         DeathVFXGraph = DeathVFX.GetComponent<VisualEffect>();
@@ -111,6 +113,11 @@ public class PCControllerGlide : MonoBehaviour
                 DustVFX.SetActive(false);
                 SetVFXValue(DustVFXGraph, 0f);
 
+                if (playerAudio.isPlaying)
+                {
+                    playerAudio.Stop();
+                }
+
                 if (GameManager.instance.currentGameState == GameManager.GameStates.GAMEPLAY)
                 {
                     InitialPush();
@@ -130,6 +137,11 @@ public class PCControllerGlide : MonoBehaviour
 
                 DustVFX.SetActive(true);
                 SetVFXValue(DustVFXGraph, 5f);
+
+                if (!playerAudio.isPlaying)
+                {
+                    playerAudio.Play();
+                }
 
                 if (Input.GetMouseButtonDown(0) && isGrounded && !isPaused && !touchOnUI) //Check If left mouse button is pressed or one finger touched screen and isGrounded is true
                 {
@@ -153,6 +165,11 @@ public class PCControllerGlide : MonoBehaviour
                 DustVFX.SetActive(false);
                 SetVFXValue(DustVFXGraph, 0f);
 
+                if (playerAudio.isPlaying)
+                {
+                    playerAudio.Stop();
+                }
+
                 if (isGrounded) //Check if player is grounded
                 {
                     if (currentState != PlayerStates.RUN) //Check if current Player State is NOT In Run State
@@ -175,6 +192,11 @@ public class PCControllerGlide : MonoBehaviour
 
                 playerRB.gravityScale = playerGravity;
 
+                if (playerAudio.isPlaying)
+                {
+                    playerAudio.Stop();
+                }
+
                 if (isGrounded) //Check if player is grounded
                 {
                     playerRB.gravityScale = 1f;
@@ -188,6 +210,11 @@ public class PCControllerGlide : MonoBehaviour
                 break;
 
             case PlayerStates.DEAD: //If value is PlayerState.Dead, execute following block of code till break
+
+                if (playerAudio.isPlaying)
+                {
+                    playerAudio.Stop();
+                }
 
                 DustVFX.SetActive(false); // Deactivate the DustVFX
                 DeathVFX.SetActive(true); // Activate de Death VFX

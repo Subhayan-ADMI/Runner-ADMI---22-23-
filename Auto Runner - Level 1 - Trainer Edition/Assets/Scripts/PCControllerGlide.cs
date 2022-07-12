@@ -28,7 +28,6 @@ public class PCControllerGlide : MonoBehaviour
     [Header("Player Components")] //Seperate components in inspector - to make the project user friendly, not needed
     Rigidbody2D playerRB; //store Rigidbody2D Component of pc gameobject
     Animator playerAnim;
-    AudioSource playerAudio;
 
     [Header("State Machine Variables")] //Seperate components in inspector - to make the project user friendly, not needed
     public PlayerStates currentState; //make a variable of data type PlayerState
@@ -63,13 +62,14 @@ public class PCControllerGlide : MonoBehaviour
     {
         playerRB = GetComponent<Rigidbody2D>(); //Access the Rigidbody2D component and store all properties in playerRB when game starts
         playerAnim = GetComponent<Animator>();
-        playerAudio = GetComponent<AudioSource>();
 
         DustVFXGraph = DustVFX.GetComponent<VisualEffect>();
         DeathVFXGraph = DeathVFX.GetComponent<VisualEffect>();
         PickupVFXGraph = PickupVFX.GetComponent<VisualEffect>();
 
         currentState = PlayerStates.IDLE; //Set currentstate to Run State at start of the game
+
+
     }
 
     // Start is called before the first frame update
@@ -112,11 +112,9 @@ public class PCControllerGlide : MonoBehaviour
 
                 DustVFX.SetActive(false);
                 SetVFXValue(DustVFXGraph, 0f);
+                
+                AudioManager.instance.StopSound("Footsteps");
 
-                if (playerAudio.isPlaying)
-                {
-                    playerAudio.Stop();
-                }
 
                 if (GameManager.instance.currentGameState == GameManager.GameStates.GAMEPLAY)
                 {
@@ -138,10 +136,7 @@ public class PCControllerGlide : MonoBehaviour
                 DustVFX.SetActive(true);
                 SetVFXValue(DustVFXGraph, 5f);
 
-                if (!playerAudio.isPlaying)
-                {
-                    playerAudio.Play();
-                }
+                AudioManager.instance.PlaySound("Footsteps");
 
                 if (Input.GetMouseButtonDown(0) && isGrounded && !isPaused && !touchOnUI) //Check If left mouse button is pressed or one finger touched screen and isGrounded is true
                 {
@@ -165,10 +160,7 @@ public class PCControllerGlide : MonoBehaviour
                 DustVFX.SetActive(false);
                 SetVFXValue(DustVFXGraph, 0f);
 
-                if (playerAudio.isPlaying)
-                {
-                    playerAudio.Stop();
-                }
+                AudioManager.instance.StopSound("Footsteps");
 
                 if (isGrounded) //Check if player is grounded
                 {
@@ -192,10 +184,7 @@ public class PCControllerGlide : MonoBehaviour
 
                 playerRB.gravityScale = playerGravity;
 
-                if (playerAudio.isPlaying)
-                {
-                    playerAudio.Stop();
-                }
+                AudioManager.instance.StopSound("Footsteps");
 
                 if (isGrounded) //Check if player is grounded
                 {
@@ -211,10 +200,7 @@ public class PCControllerGlide : MonoBehaviour
 
             case PlayerStates.DEAD: //If value is PlayerState.Dead, execute following block of code till break
 
-                if (playerAudio.isPlaying)
-                {
-                    playerAudio.Stop();
-                }
+                AudioManager.instance.StopSound("Footsteps");
 
                 DustVFX.SetActive(false); // Deactivate the DustVFX
                 DeathVFX.SetActive(true); // Activate de Death VFX
